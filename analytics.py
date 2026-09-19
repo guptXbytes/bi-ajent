@@ -1,3 +1,4 @@
+
 import pandas as pd
 
 DEALS_FILE = "data/deals_Funnel.xlsx"
@@ -5,17 +6,14 @@ WORK_ORDERS_FILE = "data/work_Order.xlsx"
 
 
 def load_data():
-    # Load Deals
     deals = pd.read_excel(DEALS_FILE)
 
-    # Work Orders: second row contains the headers
     work_orders = pd.read_excel(
         WORK_ORDERS_FILE,
         sheet_name="work order tracker",
         header=1
     )
 
-    # Clean column names
     deals.columns = deals.columns.str.strip()
     work_orders.columns = work_orders.columns.str.strip()
 
@@ -23,17 +21,14 @@ def load_data():
 
 
 def to_number(series):
-    """Convert values to numbers; invalid/missing values become 0."""
+    """Convert invalid or missing values to 0."""
     return pd.to_numeric(series, errors="coerce").fillna(0)
 
 
 def get_analytics():
     deals, work_orders = load_data()
 
-    # -------------------------
     # DEAL ANALYTICS
-    # -------------------------
-
     total_deals = len(deals)
 
     open_deals = deals[
@@ -48,18 +43,23 @@ def get_analytics():
     total_deal_value = deal_values.sum()
     open_pipeline = open_deal_values.sum()
 
-    # Deals by sector
+    # Clean sector names and handle missing values
+    deals["Sector/service"] = (
+        deals["Sector/service"]
+        .fillna("Unknown")
+        .astype(str)
+        .str.strip()
+        .replace("", "Unknown")
+    )
+
     deals_by_sector = (
-        deals.groupby("Sector/service", dropna=False)
+        deals.groupby("Sector/service")
         .size()
         .sort_values(ascending=False)
         .to_dict()
     )
 
-    # -------------------------
     # WORK ORDER ANALYTICS
-    # -------------------------
-
     total_work_orders = len(work_orders)
 
     execution_status = (
@@ -94,15 +94,8 @@ def get_analytics():
     }
 
 
-if __name__ == "__main__":
-    results = get_analytics()
-
-    print("\n===== SKYLARK BI ANALYTICS =====")
-    for key, value in results.items():
-        print(f"\n{key}: {value}")
-
 def answer_question(question, metrics):
-    q = question.lower()
+    q = question.lower().strip()
 
     if "how many deals" in q or "total deals" in q:
         return f"There are {metrics['total_deals']} deals in total."
@@ -113,6 +106,15 @@ def answer_question(question, metrics):
             f"Their total unweighted pipeline value is "
             f"₹{metrics['open_pipeline']:,.0f}."
         )
+
+    elif "work order" in q and any(
+        word in q for word in ["status", "execution", "progress", "ongoing"]
+    ):
+        statuses = metrics["execution_status"]
+        summary = ", ".join(
+            f"{status}: {count}" for status, count in statuses.items()
+        )
+        return f"Work order execution breakdown: {summary}."
 
     elif "work order" in q:
         return (
@@ -136,11 +138,14 @@ def answer_question(question, metrics):
         )
 
     elif "sector" in q:
-        sectors = metrics["deals_by_sector"]
         sectors = {
-            str(k): v for k, v in sectors.items()
-            if str(k).lower() not in ["nan", "sector/service"]
+            str(k): v
+            for k, v in metrics["deals_by_sector"].items()
+            if str(k).lower() not in ["unknown", "sector/service", "nan", ""]
         }
+
+        if not sectors:
+            return "Sector information is unavailable."
 
         top_sector = max(sectors, key=sectors.get)
 
@@ -151,8 +156,14 @@ def answer_question(question, metrics):
 
     else:
         return (
-            "I can currently answer questions about total deals, "
-            "open pipeline, work orders, billed value, collections, "
-            "receivables, and sectors."
+            "I can answer questions about deals, pipeline, sectors, "
+            "work order execution, billing, collections, and receivables."
         )
 
+
+if __name__ == "__main__":
+    results = get_analytics()
+
+    print("\n===== BI-AJENT ANALYTICS =====")
+    for key, value in results.items():
+        print(f"\n{key}: {value}")

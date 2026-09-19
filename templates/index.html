@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skylark BI Agent</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 30px;
+            color: #1f2937;
+        }
+
+        h1 { color: #12345a; }
+
+        .note {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin: 25px 0;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #00000010;
+        }
+
+        .card h3 {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .card p {
+            font-size: 23px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .chat {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        input {
+            width: 70%;
+            padding: 12px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #12345a;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Skylark Drones | BI Agent</h1>
+    <p class="note">Business Intelligence Dashboard · Excel snapshot</p>
+
+    <div class="dashboard">
+        <div class="card">
+            <h3>Total Deals</h3>
+            <p>{{ metrics.total_deals }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Open Deals</h3>
+            <p>{{ metrics.open_deal_count }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Open Pipeline</h3>
+            <p>₹{{ "{:,.0f}".format(metrics.open_pipeline) }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Total Work Orders</h3>
+            <p>{{ metrics.total_work_orders }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Billed (Incl. GST)</h3>
+            <p>₹{{ "{:,.0f}".format(metrics.total_billed) }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Collected (Incl. GST)</h3>
+            <p>₹{{ "{:,.0f}".format(metrics.total_collected) }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Receivables</h3>
+            <p>₹{{ "{:,.0f}".format(metrics.total_receivable) }}</p>
+        </div>
+    </div>
+
+    <div class="chat">
+        <h2>Ask your BI Agent</h2>
+
+        <form method="POST">
+            <input
+                type="text"
+                name="question"
+                placeholder="Ask about deals, revenue, work orders..."
+                required
+            >
+            <button type="submit">Ask</button>
+            </form>
+
+    {% if question %}
+        <h3>Your Question</h3>
+        <p>{{ question }}</p>
+    {% endif %}
+
+    {% if answer %}
+        <div class="answer-box">
+            <h3>BI Agent Answer</h3>
+            <p>{{ answer }}</p>
+        </div>
+    {% endif %}
+
+    </div>
+</body>
+</html>

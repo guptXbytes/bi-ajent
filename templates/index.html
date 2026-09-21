@@ -1,78 +1,243 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skylark BI Agent</title>
+    <title>BI-Ajent | Skylark Drones</title>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            margin: 0;
-            padding: 30px;
-            color: #1f2937;
+        * {
+            box-sizing: border-box;
         }
 
-        h1 { color: #12345a; }
+        :root {
+            --ink: #18232f;
+            --muted: #687684;
+            --paper: #ffffff;
+            --canvas: #edf3f1;
+            --accent: #0f766e;
+            --accent-dark: #115e59;
+            --line: #dce7e4;
+        }
 
-        .note {
-            color: #64748b;
+        body {
+            margin: 0;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top right, #dcefeb 0, transparent 36%), var(--canvas);
+            color: var(--ink);
+        }
+
+        header {
+            background: #173b43;
+            color: white;
+            padding: 24px 6%;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        header p {
+            margin: 8px 0 0;
+            color: #c7dbd7;
             font-size: 14px;
+        }
+
+        main {
+            max-width: 1250px;
+            margin: auto;
+            padding: 30px 5%;
+        }
+
+        .section-title {
+            margin-bottom: 6px;
+            font-size: 21px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 0;
         }
 
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 16px;
-            margin: 25px 0;
+            margin: 24px 0 36px;
         }
 
         .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px #00000010;
+            background: var(--paper);
+            padding: 21px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            box-shadow: 0 8px 24px #173b4310;
+            min-width: 0;
         }
 
         .card h3 {
-            font-size: 14px;
-            color: #64748b;
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
         }
 
         .card p {
-            font-size: 23px;
-            font-weight: bold;
+            margin: 13px 0 0;
+            font-size: 25px;
+            font-weight: 700;
             overflow-wrap: anywhere;
+            color: #173b43;
         }
 
-        .chat {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
+        .agent {
+            background: var(--paper);
+            padding: 26px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            box-shadow: 0 8px 24px #173b4310;
+        }
+
+        .agent h2 {
+            margin-top: 0;
+            font-size: 21px;
+        }
+
+        .agent-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
         }
 
         input {
-            width: 70%;
-            padding: 12px;
+            flex: 1;
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid #bfd2ce;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: 2px solid #9bbce7;
+            border-color: #3269ad;
         }
 
         button {
-            padding: 12px 18px;
-            background: #12345a;
+            padding: 14px 22px;
+            background: var(--accent);
             color: white;
             border: none;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--accent-dark);
+        }
+
+        .examples {
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .answer-box {
+            margin-top: 24px;
+            padding: 20px;
+            background: #e4f2ef;
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            overflow-wrap: anywhere;
+        }
+
+        .answer-box h3 {
+            margin-top: 0;
+            color: #173b43;
+        }
+
+        .answer-box p {
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        footer {
+            text-align: center;
+            color: #8a94a6;
+            font-size: 12px;
+            padding: 25px;
+        }
+
+        .error-box {
+            margin: 22px 0;
+            padding: 16px 18px;
+            border: 1px solid #e7b5a5;
+            border-left: 4px solid #c45135;
+            border-radius: 8px;
+            background: #fff4ef;
+            color: #7c3021;
+        }
+
+        .source-note {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        canvas {
+            max-height: 330px;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                padding: 22px 4%;
+            }
+
+            form {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .agent {
+                padding: 19px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <h1>Skylark Drones | BI Agent</h1>
-    <p class="note">Business Intelligence Dashboard · Excel snapshot</p>
 
-    <div class="dashboard">
+<header>
+    <h1>BI-Ajent</h1>
+    <p>Skylark Drones · Business Intelligence Assistant</p>
+</header>
+
+<main>
+    <h2 class="section-title">Business Overview</h2>
+    <p class="subtitle">
+        Key metrics across deals and work orders
+        {% if metrics %}<span class="source-note">· {{ metrics.source.label }}</span>{% endif %}
+    </p>
+
+    {% if error %}
+    <div class="error-box" role="alert">{{ error }}</div>
+    {% endif %}
+
+    {% if metrics %}
+    <section class="dashboard">
         <div class="card">
             <h3>Total Deals</h3>
             <p>{{ metrics.total_deals }}</p>
@@ -107,33 +272,173 @@
             <h3>Receivables</h3>
             <p>₹{{ "{:,.0f}".format(metrics.total_receivable) }}</p>
         </div>
-    </div>
 
-    <div class="chat">
+        <div class="card">
+            <h3>Collection Rate</h3>
+            <p>{% if metrics.collection_rate is not none %}{{ metrics.collection_rate }}%{% else %}N/A{% endif %}</p>
+        </div>
+    </section>
+
+<section class="agent" style="margin-bottom: 25px;">
+    <h2>Business Insights</h2>
+    <p class="agent-description">
+        Visual overview of deals and work order execution.
+    </p>
+
+    <div style="display:grid; grid-template-columns:
+    repeat(auto-fit, minmax(280px, 1fr)); gap:24px;">
+
+        <div>
+            <h3>Number of Deals by Sector</h3>
+            <p id="sectorChartStatus" class="source-note">Loading chart data...</p>
+            <canvas id="sectorChart" aria-label="Number of deals by sector chart"></canvas>
+        </div>
+
+        <div>
+            <h3>Total Deal Value by Sector</h3>
+            <p id="dealValueChartStatus" class="source-note">Loading chart data...</p>
+            <canvas id="dealValueChart" aria-label="Total deal value by sector chart"></canvas>
+        </div>
+
+        <div>
+            <h3>Work Order Execution Status</h3>
+            <p id="statusChartStatus" class="source-note">Loading chart data...</p>
+            <canvas id="statusChart" aria-label="Work order execution status chart"></canvas>
+        </div>
+
+    </div>
+</section>
+
+    <section class="agent">
         <h2>Ask your BI Agent</h2>
+
+        <p class="agent-description">
+            Explore business performance using grounded questions about deals,
+            pipeline, billing, collections, work orders, and board matching.
+        </p>
 
         <form method="POST">
             <input
                 type="text"
                 name="question"
-                placeholder="Ask about deals, revenue, work orders..."
+                value="{{ question }}"
+                placeholder="Ask a business question..."
                 required
             >
-            <button type="submit">Ask</button>
-            </form>
+            <button type="submit">Ask Agent →</button>
+        </form>
 
-    {% if question %}
-        <h3>Your Question</h3>
-        <p>{{ question }}</p>
-    {% endif %}
+        <div class="examples">
+            <strong>Try asking:</strong><br>
+            How many open deals do we have?<br>
+            What is our total receivable?<br>
+            Which sector has the largest open pipeline?
+        </div>
 
-    {% if answer %}
+        {% if question and answer %}
         <div class="answer-box">
-            <h3>BI Agent Answer</h3>
+            <h3>Agent Response</h3>
+            <p><strong>Q:</strong> {{ question }}</p>
             <p>{{ answer }}</p>
         </div>
+            <script>
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState(null, document.title, window.location.pathname);
+                }
+            </script>
+        {% endif %}
+    </section>
     {% endif %}
+</main>
 
-    </div>
+<footer>
+    BI-Ajent · Business Intelligence Dashboard · Data snapshot
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const sectorData = {{ (metrics.deals_by_sector if metrics else {}) | tojson }};
+    const dealValueData = {{ (metrics.deal_value_by_sector if metrics else {}) | tojson }};
+    const statusData = {{ (metrics.execution_status if metrics else {}) | tojson }};
+
+    function showChartState(id, message) {
+        document.getElementById(id).textContent = message;
+    }
+
+    if (typeof Chart === "undefined") {
+        showChartState("sectorChartStatus", "Charts are unavailable because the chart library could not load.");
+        showChartState("dealValueChartStatus", "Charts are unavailable because the chart library could not load.");
+        showChartState("statusChartStatus", "Charts are unavailable because the chart library could not load.");
+    } else if (
+        Object.keys(sectorData).length === 0 ||
+        Object.keys(dealValueData).length === 0 ||
+        Object.keys(statusData).length === 0
+    ) {
+        showChartState("sectorChartStatus", "Chart data is unavailable.");
+        showChartState("dealValueChartStatus", "Chart data is unavailable.");
+        showChartState("statusChartStatus", "Chart data is unavailable.");
+    } else {
+        showChartState("sectorChartStatus", "");
+        showChartState("dealValueChartStatus", "");
+        showChartState("statusChartStatus", "");
+
+        new Chart(document.getElementById("sectorChart"), {
+            type: "bar",
+            data: {
+                labels: Object.keys(sectorData),
+                datasets: [{
+                    label: "Number of Deals",
+                    data: Object.values(sectorData),
+                    backgroundColor: "#0f766e"
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById("dealValueChart"), {
+            type: "bar",
+            data: {
+                labels: Object.keys(dealValueData),
+                datasets: [{
+                    label: "Total Deal Value (₹)",
+                    data: Object.values(dealValueData),
+                    backgroundColor: "#e09f3e"
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: value => "₹" + Number(value).toLocaleString("en-IN")
+                        }
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById("statusChart"), {
+            type: "doughnut",
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: ["#0f766e", "#e09f3e", "#c45135", "#4b7080", "#7a8c55", "#b7c7c3"]
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+</script>
+
 </body>
 </html>

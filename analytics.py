@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,7 @@ from monday_client import (
 BASE_DIR = Path(__file__).resolve().parent
 DEALS_FILE = BASE_DIR / "data" / "deals_Funnel.xlsx"
 WORK_ORDERS_FILE = BASE_DIR / "data" / "work_Order.xlsx"
+logger = logging.getLogger(__name__)
 
 
 class DataLoadError(RuntimeError):
@@ -30,6 +32,16 @@ def _clean_columns(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _read_snapshot() -> tuple[pd.DataFrame, pd.DataFrame]:
+    missing_files = [
+        path for path in (DEALS_FILE, WORK_ORDERS_FILE) if not path.is_file()
+    ]
+    if missing_files:
+        message = "Excel snapshot file(s) not found: " + ", ".join(
+            str(path) for path in missing_files
+        )
+        logger.error(message)
+        raise DataLoadError(message)
+
     try:
         deals = pd.read_excel(DEALS_FILE)
         work_orders = pd.read_excel(
@@ -38,7 +50,9 @@ def _read_snapshot() -> tuple[pd.DataFrame, pd.DataFrame]:
             header=1,
         )
     except (FileNotFoundError, OSError, ValueError) as error:
-        raise DataLoadError(f"Could not read local Excel snapshots: {error}") from error
+        message = f"Could not read local Excel snapshots: {error}"
+        logger.exception(message)
+        raise DataLoadError(message) from error
     return _clean_columns(deals), _clean_columns(work_orders)
 
 

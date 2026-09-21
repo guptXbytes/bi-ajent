@@ -355,34 +355,44 @@
     BI-Ajent · Business Intelligence Dashboard · Data snapshot
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"
+    onerror="this.onerror=null; this.src='https://unpkg.com/chart.js@4.5.1/dist/chart.umd.min.js';"
+></script>
 
 <script>
-    const sectorData = {{ (metrics.deals_by_sector if metrics else {}) | tojson }};
-    const dealValueData = {{ (metrics.deal_value_by_sector if metrics else {}) | tojson }};
-    const statusData = {{ (metrics.execution_status if metrics else {}) | tojson }};
+    const chartStatusIds = [
+        "sectorChartStatus",
+        "dealValueChartStatus",
+        "statusChartStatus"
+    ];
 
-    function showChartState(id, message) {
-        document.getElementById(id).textContent = message;
+    function showChartState(message) {
+        chartStatusIds.forEach(id => {
+            document.getElementById(id).textContent = message;
+        });
     }
 
-    if (typeof Chart === "undefined") {
-        showChartState("sectorChartStatus", "Charts are unavailable because the chart library could not load.");
-        showChartState("dealValueChartStatus", "Charts are unavailable because the chart library could not load.");
-        showChartState("statusChartStatus", "Charts are unavailable because the chart library could not load.");
-    } else if (
-        Object.keys(sectorData).length === 0 ||
-        Object.keys(dealValueData).length === 0 ||
-        Object.keys(statusData).length === 0
-    ) {
-        showChartState("sectorChartStatus", "Chart data is unavailable.");
-        showChartState("dealValueChartStatus", "Chart data is unavailable.");
-        showChartState("statusChartStatus", "Chart data is unavailable.");
-    } else {
-        showChartState("sectorChartStatus", "");
-        showChartState("dealValueChartStatus", "");
-        showChartState("statusChartStatus", "");
+    function showChartError(error) {
+        const status = error.status === undefined ? "unavailable" : error.status;
+        showChartState(`Unable to load chart data (status ${status}).`);
+        console.error("Chart data request failed:", error);
+    }
 
+    function renderCharts(metrics) {
+        const sectorData = metrics.deals_by_sector || {};
+        const dealValueData = metrics.deal_value_by_sector || {};
+        const statusData = metrics.execution_status || {};
+
+        if (
+            Object.keys(sectorData).length === 0 ||
+            Object.keys(dealValueData).length === 0 ||
+            Object.keys(statusData).length === 0
+        ) {
+            throw new Error("Analytics response contained incomplete chart data");
+        }
+
+        showChartState("");
         new Chart(document.getElementById("sectorChart"), {
             type: "bar",
             data: {
@@ -438,6 +448,48 @@
             options: { responsive: true }
         });
     }
+
+    async function loadCharts() {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+
+        try {
+            const response = await fetch("/api/analytics", {
+                headers: { "Accept": "application/json" },
+                signal: controller.signal
+            });
+
+            if (!response.ok) {
+                const error = new Error(`Analytics request failed with HTTP ${response.status}`);
+                error.status = response.status;
+                throw error;
+            }
+
+            const payload = await response.json();
+            if (payload.status !== "success" || !payload.data) {
+                const error = new Error("Analytics response did not contain successful chart data");
+                error.status = response.status;
+                throw error;
+            }
+
+            if (typeof Chart === "undefined") {
+                const error = new Error("Chart.js did not load");
+                error.status = response.status;
+                throw error;
+            }
+
+            renderCharts(payload.data);
+        } catch (error) {
+            if (error.name === "AbortError") {
+                error.status = "timeout";
+            }
+            showChartError(error);
+        } finally {
+            window.clearTimeout(timeoutId);
+        }
+    }
+
+    loadCharts();
 </script>
 
 </body>

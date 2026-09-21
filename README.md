@@ -138,7 +138,7 @@ The application is configured for deployment on Render using Gunicorn.
 The `Procfile` contains:
 
 ```text
-web: gunicorn app:app
+web: gunicorn --bind 0.0.0.0:$PORT app:app
 ```
 
 To enable Monday.com live data in production:

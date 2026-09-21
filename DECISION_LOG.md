@@ -1,39 +1,55 @@
-# BI-Ajent Decision Log
+# BI-Ajent – Decision Log
 
-## 1. Preserve the existing Flask application
+This document explains the key decisions I made while building BI-Ajent, along with the reasons, trade-offs, and possible improvements.
 
-The project already had working KPI cards, Chart.js charts, JSON endpoints, and a server-rendered question flow. The implementation keeps those paths and improves their failure behavior instead of introducing a new framework or frontend build step.
+## 1. Keep the Existing Flask Application
 
-## 2. Separate source loading from analytics
+I decided to continue with the existing Flask application because it already had working KPI cards, charts, API endpoints, and a question-answering flow.
 
-Analytics now selects a live Monday.com source only when all required environment variables exist; otherwise it uses the existing Excel snapshots. The calculation layer receives dataframes and resolves columns through aliases, which keeps Flask routes focused on HTTP behavior.
+Instead of rebuilding everything using a new framework, I improved the existing features and error handling. This helped keep the project simple and focused.
 
-**Trade-off:** Alias matching makes the app tolerant of small board naming differences, but an unusual Monday column title may need an explicit alias. This is preferable to silently calculating from the wrong column.
+## 2. Separate Data Loading from Analytics
 
-## 3. Read-only Monday integration
+I kept data loading and business calculations separate from the Flask routes. The app uses Monday.com when all required environment variables are configured; otherwise, it uses the local Excel snapshots.
 
-The Monday client uses GraphQL `boards -> items_page` reads only. It does not expose mutation methods. Tokens and board IDs are read from environment variables and never committed.
+This makes the code easier to understand, test, and maintain.
 
-**Trade-off:** Live mode fails clearly when configuration or access is invalid rather than falling back to stale snapshots. This protects founder-facing decisions from an unnoticed source switch.
+**Trade-off:** Column aliases help handle small differences in column names, but unusual names may still need to be added manually.
 
-## 4. Defensive handling of imperfect data
+## 3. Use a Read-Only Monday.com Integration
 
-Missing columns become unavailable/zero-valued metrics, null labels become `Unknown` or `Missing`, and currency-like strings are parsed defensively. Collection rate is `N/A` when billed value is absent or zero.
+I chose a read-only Monday.com API connection so the Agent can fetch Deals and Work Orders data without changing the original boards.
 
-**Trade-off:** Treating malformed amounts as zero avoids route failures but can hide data quality problems. The API and UI should be extended with row-level quality warnings if operational monitoring becomes a requirement.
+The API token and board IDs are stored in environment variables instead of being hardcoded in the project.
 
-## 5. Grounded deterministic Q&A
+**Trade-off:** If Monday.com credentials are invalid or the boards are inaccessible, the app reports an error instead of silently using old Excel data. This helps avoid misleading business insights.
 
-Answers are generated only from calculated metrics. The assistant reports when a requested field is unavailable and describes pipeline as an unweighted open-deal sum.
+## 4. Handle Messy Data Safely
 
-**Trade-off:** Keyword routing is less flexible than an LLM, but it is transparent, reproducible, and cannot fabricate a value. A future semantic layer should retain the same metric and evidence constraints.
+The provided data may contain missing values, inconsistent text, or invalid numbers. I added data-cleaning logic to handle these cases and prevent common calculation errors.
 
-## 6. Cross-board matching
+Missing labels are grouped under `Unknown` or `Missing`, and invalid numeric values are handled safely.
 
-The dashboard reports deal/work-order name matches after whitespace and case normalization.
+**Trade-off:** Treating invalid amounts as zero keeps calculations running, but it may hide data quality issues. In the future, I would add data-quality warnings to highlight records that need review.
 
-**Trade-off:** Name matching provides useful insight with the current masked data but is not a guaranteed relational key. A stable Monday item ID or explicit deal ID column should replace it when available.
+## 5. Use Rule-Based Q&A for Business Questions
 
-## 7. Deployment posture
+I chose rule-based question handling so the Agent answers using calculated business metrics rather than making unsupported assumptions.
 
-The existing Render `Procfile` remains `web: gunicorn app:app`. The repository does not push or deploy automatically. Real Monday credentials and board IDs must be supplied through Render secrets before live integration can be tested.
+This approach keeps the answers simple, consistent, and easier to verify.
+
+**Trade-off:** It may not understand every way a founder asks a question. A future version could support more natural questions while ensuring answers remain connected to actual data.
+
+## 6. Match Deals and Work Orders Using Deal Names
+
+I used normalized deal names to match Deals with Work Orders. The matching process handles basic differences such as letter case and extra spaces.
+
+**Trade-off:** Deal names are not always unique, so this matching is not guaranteed to be exact. If a stable deal ID is available, I would use it for more reliable matching.
+
+## 7. Keep Deployment Simple
+
+I kept the existing Render deployment setup using Gunicorn, without adding an unnecessary deployment framework or extra build steps.
+
+Monday.com credentials are configured through Render environment variables, keeping them separate from the source code.
+
+**Trade-off:** The live Monday.com integration must be configured and tested separately in Render. A successful local test alone does not confirm that the deployed app is working correctly.
